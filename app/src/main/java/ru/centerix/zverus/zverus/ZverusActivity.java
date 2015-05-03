@@ -63,35 +63,35 @@ public class ZverusActivity extends Activity{
         OnLoadLayout();
     }
 
+    // Load, login, register activity
+    ZverusLoginActivity loginregister= new ZverusLoginActivity(this, this);
+
     void OnLoadLayout(){
-        ZverusLoginActivity loginregister= new ZverusLoginActivity(this, this);
         loginregister.OnLoadLayout();
     }
 
     void OnLoginLayout(){
-        ZverusLoginActivity loginregister= new ZverusLoginActivity(this, this);
         loginregister.OnLoginLayout();
-        }
+    }
 
     void OnRegisterLayout(){
-        ZverusLoginActivity loginregister= new ZverusLoginActivity(this, this);
         loginregister.OnRegisterLayout();
     }
 
 
-    // Chats Activity
-    ZverusChatsActivity chat= new ZverusChatsActivity(this, this);
+    // Chats, contacts, chat activity
+    ZverusChatsActivity chatscontacts= new ZverusChatsActivity(this, this);
+
     void OnChatsLayout(){
-        //ZverusChatsActivity chat= new ZverusChatsActivity(this, this);
-        chat.OnChatsLayout();
+        chatscontacts.OnChatsLayout();
     }
 
     void OnContactsLayout(){
-        //          contacts.OnContactsLayout();
+        chatscontacts.OnContactsLayout();
     }
 
     void OnChatLayout(ZverusContact con){
-        chat.OnChatLayout(con);
+        chatscontacts.OnChatLayout(con);
     }
 
     @Override
@@ -101,8 +101,6 @@ public class ZverusActivity extends Activity{
         else
             super.onBackPressed();
     }
-
-
 
     @Override
     public void onStop(){

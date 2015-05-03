@@ -11,6 +11,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -47,6 +48,109 @@ public class ZverusChatsActivity {
     private static final String ICON = "icon";
 
 
+    // Contacts
+    int OnContactsLayoutRun = 0;
+    void DrawContacts(ZverusContact[] con){
+        ListView listView = (ListView) findViewById(R.id.ContactsLayout_List);
+
+        chat_list = new ArrayList<HashMap<String, Object>>();
+        HashMap<String, Object> hm;
+
+        for(int i=0; i<con.length; i++){
+            hm = new HashMap<String, Object>();
+            hm.put(UID, con[i].uid);
+            hm.put(TITLE, con[i].login);
+            hm.put(LTIME, con[i].ltime);
+            hm.put(DESCRIPTION, con[i].name);
+            hm.put(ICON, R.drawable.shop);
+            chat_list.add(hm);
+        }
+
+        SimpleAdapter adapter = new SimpleAdapter(zparent, chat_list,
+                R.layout.list_item, new String[]{TITLE, DESCRIPTION, ICON},
+                new int[]{R.id.text1, R.id.text2, R.id.img});
+
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(itemClickListener);
+
+        return ;
+    }
+
+    void OnContactsLayout() {
+        if (!SetLayout(R.layout.contacts))
+            return;
+
+        Button btn;
+
+        ZverusContact[] con = zparent.GetContacts();
+        DrawContacts(con);
+
+        btn = (Button) findViewById(R.id.ContactsLayout_Chat);
+        btn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                zparent.OnChatsLayout();
+                return;
+            }
+        });
+
+        btn = (Button) findViewById(R.id.ContactsLayout_Add);
+        btn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+                EditText login = (EditText) findViewById(R.id.ContactsLayout_Search);
+
+                if (OnContactsLayoutRun != 0)
+                    return;
+
+                OnContactsLayoutRun = 1;
+
+                MAutoAsync mt = new MAutoAsync();
+                final int result[] = new int[1];
+                final ZverusContact[] con2 = new ZverusContact[1];
+                final String slogin = login.getText().toString();
+
+                mt.setPre(new MAutoAsyncFunc() {
+                    @Override
+                    public void execute() {
+                        TextView error = (TextView) findViewById(R.id.ContactsLayout_Error);
+                        error.setText("Search...");
+                    }
+                });
+
+                mt.setBg(new MAutoAsyncFunc() {
+                    @Override
+                    public void execute() {
+                        ZverusContact[] con = zparent.GetContact(slogin);
+                        if (con.length > 0) {
+                            result[0] = 1;
+                            con2[0] = con[0];
+                        } else
+                            result[0] = 0;
+                    }
+                });
+
+                mt.setPost(new MAutoAsyncFunc() {
+                    @Override
+                    public void execute() {
+                        if (result[0] != 0) {
+                            //OnContactsLayout();
+                            DrawContacts(con2);
+                        } else {
+                            String err = zparent.GetLoginError();
+                            TextView error = (TextView) findViewById(R.id.ContactsLayout_Error);
+                            error.setText(err);
+                        }
+                        OnContactsLayoutRun = 0;
+                    }
+                });
+
+                mt.execute();
+                return;
+            }
+        });
+    }
+
+    // Chats
     void DrawChats(){
         ListView listView = (ListView) findViewById(R.id.ChatsLayout_List);
 
@@ -55,6 +159,7 @@ public class ZverusChatsActivity {
 
         mupd=zparent.GetChatsUpd();
         ZverusContact[] con = zparent.GetChats();
+        Arrays.sort(con);
 
         for(int i=0; i<con.length; i++){
             hm = new HashMap<String, Object>();
@@ -77,10 +182,6 @@ public class ZverusChatsActivity {
 
         return ;
     }
-
-
-
-
 
     void OnChatsLayout(){
         if(!SetLayout(R.layout.chats))
@@ -227,25 +328,32 @@ public class ZverusChatsActivity {
 
         MAutoAsync mt = new MAutoAsync(); mupdrun=2;
         final int cid[] = new int[1]; cid[0]=con.uid;
-        mt.setBg(new MAutoAsyncFunc(){ @Override public void execute(){
-            while(mupdrun==2){
-                //Log.i("skylee", "maa");
-                int upd=zparent.GetMessagesUpd(cid[0]);
-                if(mupd!=upd){
-                    //Log.i("skylee", "maa: "+upd+", "+mupd);
-                    //mupd=upd;
-                    //Log.i("skylee", "maa: "+upd+", "+mupd);
-                    ma.setProgress(0);
+        mt.setBg(new MAutoAsyncFunc() {
+            @Override
+            public void execute() {
+                while (mupdrun == 2) {
+                    //Log.i("skylee", "maa");
+                    int upd = zparent.GetMessagesUpd(cid[0]);
+                    if (mupd != upd) {
+                        //Log.i("skylee", "maa: "+upd+", "+mupd);
+                        //mupd=upd;
+                        //Log.i("skylee", "maa: "+upd+", "+mupd);
+                        ma.setProgress(0);
+                    }
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ie) {
+                    }
                 }
-                try { Thread.sleep(100); } catch (InterruptedException ie) { }
             }
-        }
         });
 
-        mt.setProg(new MAutoAsyncFunc(){ @Override public void execute(){
-            //Log.i("skylee", "upd");
-            DrawChatMessages();
-        }
+        mt.setProg(new MAutoAsyncFunc() {
+            @Override
+            public void execute() {
+                //Log.i("skylee", "upd");
+                DrawChatMessages();
+            }
         });
 
         mt.execute();
@@ -376,22 +484,10 @@ public class ZverusChatsActivity {
     };*/
 
 
-    public class Contact extends HashMap<String, String> {
-        public static final String NAME = "name";
-        public static final String PHONE = "phone";
-
-        public Contact(String name, String phone) {
-            super();
-            super.put(NAME, name);
-            super.put(PHONE, phone);
-        }
-    };
-
     //tells handler to send a message
     class ChatsTask extends TimerTask {
         @Override
         public void run(){
-            Log.i("WPS", "TimerTask:run");
             int upd=zparent.GetChatsUpd();
             if(mupd!=upd){
                 mupd=upd;
