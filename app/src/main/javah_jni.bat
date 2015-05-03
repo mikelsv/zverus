@@ -1,0 +1,2 @@
+javah -verbose -d jni -classpath C:\Users\MikelSV\AppData\Local\Android-sdk\platforms\android-10\android.jar;..\..\build\intermediates\classes\arm\debug ru.centerix.zverus.zverus.ZverusActivity
+javah -verbose -d jni -classpath C:\Users\MikelSV\AppData\Local\Android-sdk\platforms\android-10\android.jar;..\..\build\intermediates\classes\arm\debug ru.centerix.zverus.zverus.ZverusNative
